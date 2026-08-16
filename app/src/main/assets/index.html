@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Qusannoo</title>
+<style>
+  :root{
+    --paper: #F1E7D3;
+    --paper-line: #D9C7A4;
+    --ink: #2A2117;
+    --ink-soft: #6B5C48;
+    --coffee: #4A2E1E;
+    --coffee-deep: #2E1B10;
+    --clay: #B5652E;
+    --ochre: #C6902F;
+    --sage: #5F7A4E;
+    --rust: #A23E28;
+    --card: #FBF6EA;
+    --shadow: rgba(42,33,23,0.18);
+    --radius: 14px;
+  }
+  [data-theme="dark"]{
+    --paper: #1C1712;
+    --paper-line: #3A2E22;
+    --ink: #EDE1CC;
+    --ink-soft: #B4A488;
+    --coffee: #E8C99A;
+    --coffee-deep: #F1E7D3;
+    --clay: #E08A4C;
+    --ochre: #E0AC4F;
+    --sage: #8FAF78;
+    --rust: #E06A4E;
+    --card: #26201A;
+    --shadow: rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(180deg, transparent, transparent 27px, var(--paper-line) 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height:100vh;
+    padding-bottom:40px;
+    transition:background .25s ease, color .25s ease;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:18px 16px 0;}
+
+  header{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:6px 2px 14px;
+    border-bottom:2px solid var(--coffee);
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;}
+  .brand .mark{
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight:700; font-size:28px; letter-spacing:.5px; color:var(--coffee-deep);
+  }
+  .brand .tag{font-size:12.5px; color:var(--ink-soft); font-style:italic;}
+  .header-controls{display:flex; gap:8px;}
+  .pill-btn{
+    border:1.5px solid var(--coffee); background:transparent; color:var(--coffee-deep);
+    font-family:inherit; font-weight:600; font-size:12px; padding:6px 10px;
+    border-radius:999px; cursor:pointer; letter-spacing:.3px;
+  }
+  .pill-btn:active{ transform: scale(.96); }
+
+  /* Coffee ring — signature element: concentric stain rings as budget dial */
+  .stain-ring{position:relative; width:96px; height:96px;}
+  .stain-ring svg{transform:rotate(-90deg);}
+  .stain-ring .ring-bg{fill:none; stroke:var(--paper-line); stroke-width:9;}
+  .stain-ring .ring-fg{fill:none; stroke-width:9; stroke-linecap:round; transition:stroke-dasharray .5s ease;}
+  .stain-ring .ring-label{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family: ui-monospace, monospace;
+  }
+  .stain-ring .ring-pct{font-size:16px; font-weight:700; color:var(--ink);}
+  .stain-ring .ring-cat{font-size:9px; color:var(--ink-soft); max-width:70px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  section{margin-top:22px;}
+  h2{
+    font-size:11px; text-transform:uppercase; letter-spacing:1.4px; color:var(--ink-soft);
+    margin:0 0 10px 2px; font-weight:700;
+  }
+
+  .summary-row{display:flex; gap:10px;}
+  .sum-card{
+    flex:1; background:var(--card); border-radius:var(--radius); padding:12px 10px;
+    box-shadow:0 2px 6px var(--shadow); text-align:center;
+  }
+  .sum-card .amt{
+    font-family: ui-monospace, monospace; font-weight:700; font-size:16px; color:var(--rust);
+  }
+  .sum-card .lbl{font-size:10.5px; color:var(--ink-soft); margin-top:3px;}
+
+  .card{
+    background:var(--card); border-radius:var(--radius); padding:16px;
+    box-shadow:0 2px 8px var(--shadow);
+  }
+
+  form.entry{display:flex; flex-direction:column; gap:10px;}
+  .row2{display:flex; gap:10px;}
+  .field{flex:1; display:flex; flex-direction:column; gap:4px;}
+  label{font-size:11px; color:var(--ink-soft); font-weight:600;}
+  input, select{
+    font-family:inherit; font-size:14.5px; padding:9px 10px; border-radius:9px;
+    border:1.5px solid var(--paper-line); background:var(--paper); color:var(--ink);
+  }
+  input:focus, select:focus{outline:2px solid var(--clay); outline-offset:1px;}
+  .add-btn{
+    margin-top:2px; background:var(--coffee-deep); color:var(--card); border:none;
+    padding:11px; border-radius:10px; font-weight:700; font-size:14.5px; cursor:pointer;
+    letter-spacing:.3px;
+  }
+  .add-btn:active{ transform: scale(.985); }
+
+  .rings-scroll{display:flex; gap:14px; overflow-x:auto; padding:4px 2px 10px;}
+  .ring-item{display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;}
+  .ring-item .over{color:var(--rust); font-weight:700;}
+
+  .donut-wrap{display:flex; align-items:center; gap:16px;}
+  .legend{display:flex; flex-direction:column; gap:6px; font-size:12.5px; flex:1;}
+  .legend-row{display:flex; align-items:center; gap:7px;}
+  .swatch{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+  .legend-row .lname{flex:1; color:var(--ink);}
+  .legend-row .lval{font-family:ui-monospace,monospace; color:var(--ink-soft);}
+
+  .entries-list{display:flex; flex-direction:column; gap:2px;}
+  .date-group{margin-bottom:6px;}
+  .date-head{font-size:10.5px; font-weight:700; color:var(--ink-soft); margin:10px 2px 4px; text-transform:uppercase; letter-spacing:.6px;}
+  .entry-row{
+    display:flex; align-items:center; gap:10px; padding:10px 6px;
+    border-bottom:1px dashed var(--paper-line);
+  }
+  .entry-row .cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .entry-row .einfo{flex:1; min-width:0;}
+  .entry-row .ecat{font-size:13.5px; font-weight:600;}
+  .entry-row .enote{font-size:11.5px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .entry-row .eamt{font-family:ui-monospace,monospace; font-weight:700; color:var(--rust); font-size:14px;}
+  .entry-row .edel{background:none; border:none; color:var(--ink-soft); font-size:16px; cursor:pointer; padding:2px 4px;}
+  .empty{text-align:center; color:var(--ink-soft); font-size:13px; padding:26px 10px; font-style:italic;}
+
+  .settings-toggle{
+    display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+    padding:2px;
+  }
+  .budget-grid{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .budget-grid .brow{display:flex; align-items:center; gap:8px;}
+  .budget-grid .brow label{flex:1; font-weight:600; color:var(--ink); font-size:13px;}
+  .budget-grid .brow input{width:100px;}
+
+  .export-btn{
+    width:100%; background:transparent; border:1.5px solid var(--coffee); color:var(--coffee-deep);
+    padding:11px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; margin-top:6px;
+  }
+  footer{text-align:center; font-size:11px; color:var(--ink-soft); padding:26px 10px 6px; font-style:italic;}
+
+  ::-webkit-scrollbar{height:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--paper-line); border-radius:3px;}
+
+  @media (prefers-reduced-motion: reduce){
+    * { transition:none !important; }
+  }
+</style>
+</head>
+<body data-theme="light">
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="mark">Qusannoo</div>
+      <div class="tag" data-t="tagline">your daily ledger</div>
+    </div>
+    <div class="header-controls">
+      <button class="pill-btn" id="langBtn">EN</button>
+      <button class="pill-btn" id="themeBtn">☾</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="summary-row">
+      <div class="sum-card"><div class="amt" id="sumToday">0</div><div class="lbl" data-t="today">Today</div></div>
+      <div class="sum-card"><div class="amt" id="sumWeek">0</div><div class="lbl" data-t="week">This week</div></div>
+      <div class="sum-card"><div class="amt" id="sumMonth">0</div><div class="lbl" data-t="month">This month</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="addExpense">Add expense</h2>
+    <div class="card">
+      <form class="entry" id="entryForm">
+        <div class="row2">
+          <div class="field">
+            <label data-t="amount">Amount (ETB)</label>
+            <input type="number" id="fAmount" inputmode="decimal" step="0.01" min="0" required>
+          </div>
+          <div class="field">
+            <label data-t="date">Date</label>
+            <input type="date" id="fDate" required>
+          </div>
+        </div>
+        <div class="field">
+          <label data-t="category">Category</label>
+          <select id="fCategory"></select>
+        </div>
+        <div class="field">
+          <label data-t="note">Note (optional)</label>
+          <input type="text" id="fNote" maxlength="60">
+        </div>
+        <button type="submit" class="add-btn" data-t="addBtn">+ Add expense</button>
+      </form>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="budgetRings">Budget rings</h2>
+    <div class="rings-scroll" id="ringsScroll"></div>
+  </section>
+
+  <section>
+    <h2 data-t="breakdown">Category breakdown</h2>
+    <div class="card">
+      <div class="donut-wrap">
+        <svg id="donut" width="120" height="120" viewBox="0 0 120 120"></svg>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <div class="settings-toggle" id="settingsToggle">
+        <h2 style="margin:0" data-t="budgets">Category budgets (monthly)</h2>
+        <span id="settingsCaret">▾</span>
+      </div>
+      <div class="budget-grid" id="budgetGrid" style="display:none;"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="recent">Recent entries</h2>
+    <div class="card">
+      <div class="entries-list" id="entriesList"></div>
+    </div>
+  </section>
+
+  <section>
+    <button class="export-btn" id="exportBtn" data-t="export">Export CSV</button>
+  </section>
+
+  <footer data-t="footer">Qusannoo — all data stays on this device</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORAGE_KEY = "qusannoo_entries_v1";
+  const BUDGET_KEY = "qusannoo_budgets_v1";
+  const LANG_KEY = "qusannoo_lang_v1";
+  const THEME_KEY = "qusannoo_theme_v1";
+
+  const CATS = [
+    {id:"food",    en:"Food",         om:"Nyaata",         color:"#B5652E"},
+    {id:"transport",en:"Transport",   om:"Geejjiba",        color:"#5F7A4E"},
+    {id:"rent",    en:"Rent",         om:"Kiraa",           color:"#4A2E1E"},
+    {id:"utilities",en:"Utilities",  om:"Bishaan/Ibsaa",   color:"#C6902F"},
+    {id:"airtime", en:"Airtime",      om:"Kaardii Bilbilaa",color:"#7A5C8E"},
+    {id:"family",  en:"Family",       om:"Maatii",          color:"#A23E28"},
+    {id:"health",  en:"Health",       om:"Fayyaa",          color:"#3E7A8E"},
+    {id:"other",   en:"Other",        om:"Kan Biraa",       color:"#8A7B63"}
+  ];
+
+  const STR = {
+    tagline:{en:"your daily ledger", om:"galmee guyyuu keessan"},
+    today:{en:"Today", om:"Har'a"},
+    week:{en:"This week", om:"Torban kana"},
+    month:{en:"This month", om:"Ji'a kana"},
+    addExpense:{en:"Add expense", om:"Baasii Galchi"},
+    amount:{en:"Amount (ETB)", om:"Hanga (ETB)"},
+    date:{en:"Date", om:"Guyyaa"},
+    category:{en:"Category", om:"Ramaddii"},
+    note:{en:"Note (optional)", om:"Yaada (filatamaa)"},
+    addBtn:{en:"+ Add expense", om:"+ Baasii Galchi"},
+    budgetRings:{en:"Budget rings", om:"Marsaa Baajata"},
+    breakdown:{en:"Category breakdown", om:"Qooda Ramaddiin"},
+    budgets:{en:"Category budgets (monthly)", om:"Baajata Ramaddii (ji'aan)"},
+    recent:{en:"Recent entries", om:"Galmee Dhiyeenya"},
+    export:{en:"Export CSV", om:"CSV Baasi"},
+    footer:{en:"Qusannoo — all data stays on this device", om:"Qusannoo — daataan hundi meeshaa kana irratti hafa"},
+    noEntries:{en:"No expenses yet. Add your first one above.", om:"Baasiin hin galfamne. Isa jalqabaa armaan olitti galchaa."},
+    delete:{en:"Delete", om:"Haqi"},
+    overBudget:{en:"over", om:"ol"}
+  };
+
+  let lang = localStorage.getItem(LANG_KEY) || "en";
+  let theme = localStorage.getItem(THEME_KEY) || "light";
+
+  function t(key){ return STR[key] ? STR[key][lang] : key; }
+  function catName(cat){ return lang === "om" ? cat.om : cat.en; }
+
+  function loadEntries(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function saveEntries(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+
+  function loadBudgets(){
+    try{ return JSON.parse(localStorage.getItem(BUDGET_KEY)) || {}; }
+    catch(e){ return {}; }
+  }
+  function saveBudgets(b){ localStorage.setItem(BUDGET_KEY, JSON.stringify(b)); }
+
+  let entries = loadEntries();
+  let budgets = loadBudgets();
+
+  function fmt(n){
+    return Number(n).toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:2});
+  }
+
+  function todayStr(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+
+  function startOfWeek(d){
+    const dt = new Date(d);
+    const day = dt.getDay();
+    const diff = (day === 0 ? -6 : 1) - day; // ISO week starting Monday
+    dt.setDate(dt.getDate() + diff);
+    dt.setHours(0,0,0,0);
+    return dt;
+  }
+
+  function applyTranslations(){
+    document.querySelectorAll("[data-t]").forEach(el=>{
+      el.textContent = t(el.getAttribute("data-t"));
+    });
+    document.getElementById("langBtn").textContent = lang === "en" ? "EN" : "OM";
+  }
+
+  function populateCategorySelect(){
+    const sel = document.getElementById("fCategory");
+    sel.innerHTML = "";
+    CATS.forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = catName(c);
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderBudgetGrid(){
+    const grid = document.getElementById("budgetGrid");
+    grid.innerHTML = "";
+    CATS.forEach(c=>{
+      const row = document.createElement("div");
+      row.className = "brow";
+      const lbl = document.createElement("label");
+      lbl.textContent = catName(c);
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.min = "0";
+      inp.placeholder = "0";
+      inp.value = budgets[c.id] || "";
+      inp.addEventListener("change", ()=>{
+        budgets[c.id] = Number(inp.value) || 0;
+        saveBudgets(budgets);
+        renderAll();
+      });
+      row.appendChild(lbl);
+      row.appendChild(inp);
+      grid.appendChild(row);
+    });
+  }
+
+  function computeSums(){
+    const now = new Date();
+    const todayS = todayStr();
+    const weekStart = startOfWeek(now);
+    const monthPrefix = todayS.slice(0,7);
+
+    let today=0, week=0, month=0;
+    entries.forEach(e=>{
+      if(e.date === todayS) today += e.amount;
+      const ed = new Date(e.date+"T00:00:00");
+      if(ed >= weekStart) week += e.amount;
+      if(e.date.slice(0,7) === monthPrefix) month += e.amount;
+    });
+    return {today, week, month};
+  }
+
+  function categoryMonthTotals(){
+    const monthPrefix = todayStr().slice(0,7);
+    const totals = {};
+    CATS.forEach(c=> totals[c.id] = 0);
+    entries.forEach(e=>{
+      if(e.date.slice(0,7) === monthPrefix){
+        totals[e.category] = (totals[e.category]||0) + e.amount;
+      }
+    });
+    return totals;
+  }
+
+  function renderSummary(){
+    const s = computeSums();
+    document.getElementById("sumToday").textContent = fmt(s.today);
+    document.getElementById("sumWeek").textContent = fmt(s.week);
+    document.getElementById("sumMonth").textContent = fmt(s.month);
+  }
+
+  function renderRings(){
+    const totals = categoryMonthTotals();
+    const wrap = document.getElementById("ringsScroll");
+    wrap.innerHTML = "";
+    const R = 42, CIRC = 2*Math.PI*R;
+
+    CATS.forEach(c=>{
+      const spent = totals[c.id] || 0;
+      const budget = budgets[c.id] || 0;
+      if(budget === 0 && spent === 0) return;
+      const pct = budget > 0 ? Math.min(spent/budget, 1) : 0;
+      const over = budget > 0 && spent > budget;
+
+      const item = document.createElement("div");
+      item.className = "ring-item";
+
+      const ringDiv = document.createElement("div");
+      ringDiv.className = "stain-ring";
+      ringDiv.innerHTML = `
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle class="ring-bg" cx="48" cy="48" r="${R}"></circle>
+          <circle class="ring-fg" cx="48" cy="48" r="${R}"
+            stroke="${over ? '#A23E28' : c.color}"
+            stroke-dasharray="${CIRC*pct} ${CIRC}"></circle>
+        </svg>
+        <div class="ring-label">
+          <div class="ring-pct" style="${over?'color:#A23E28':''}">${budget>0 ? Math.round(pct*100)+'%' : fmt(spent)}</div>
+          <div class="ring-cat">${catName(c)}</div>
+        </div>`;
+      item.appendChild(ringDiv);
+
+      const sub = document.createElement("div");
+      sub.style.fontSize = "10.5px";
+      sub.style.color = "var(--ink-soft)";
+      sub.style.fontFamily = "ui-monospace, monospace";
+      if(budget > 0){
+        sub.innerHTML = over
+          ? `<span class="over">+${fmt(spent-budget)} ${t('overBudget')}</span>`
+          : `${fmt(spent)} / ${fmt(budget)}`;
+      } else {
+        sub.textContent = fmt(spent);
+      }
+      item.appendChild(sub);
+      wrap.appendChild(item);
+    });
+
+    if(!wrap.children.length){
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.style.padding = "10px";
+      empty.textContent = t("noEntries");
+      wrap.appendChild(empty);
+    }
+  }
+
+  function renderDonut(){
+    const totals = categoryMonthTotals();
+    const total = Object.values(totals).reduce((a,b)=>a+b,0);
+    const svg = document.getElementById("donut");
+    const legend = document.getElementById("legend");
+    svg.innerHTML = "";
+    legend.innerHTML = "";
+
+    if(total <= 0){
+      svg.innerHTML = `<circle cx="60" cy="60" r="46" fill="none" stroke="var(--paper-line)" stroke-width="14"/>`;
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.style.padding = "0";
+      empty.textContent = t("noEntries");
+      legend.appendChild(empty);
+      return;
+    }
+
+    const R = 46, CIRC = 2*Math.PI*R;
+    let offset = 0;
+    CATS.forEach(c=>{
+      const val = totals[c.id] || 0;
+      if(val <= 0) return;
+      const frac = val/total;
+      const seg = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      seg.setAttribute("cx","60"); seg.setAttribute("cy","60"); seg.setAttribute("r",R);
+      seg.setAttribute("fill","none");
+      seg.setAttribute("stroke", c.color);
+      seg.setAttribute("stroke-width","14");
+      seg.setAttribute("stroke-dasharray", `${CIRC*frac} ${CIRC}`);
+      seg.setAttribute("stroke-dashoffset", `${-offset}`);
+      seg.setAttribute("transform","rotate(-90 60 60)");
+      svg.appendChild(seg);
+      offset += CIRC*frac;
+
+      const row = document.createElement("div");
+      row.className = "legend-row";
+      row.innerHTML = `<span class="swatch" style="background:${c.color}"></span>
+        <span class="lname">${catName(c)}</span>
+        <span class="lval">${fmt(val)}</span>`;
+      legend.appendChild(row);
+    });
+  }
+
+  function renderEntries(){
+    const list = document.getElementById("entriesList");
+    list.innerHTML = "";
+    if(!entries.length){
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = t("noEntries");
+      list.appendChild(empty);
+      return;
+    }
+    const sorted = [...entries].sort((a,b)=> b.date.localeCompare(a.date) || b.id - a.id);
+    let lastDate = null;
+    sorted.forEach(e=>{
+      if(e.date !== lastDate){
+        lastDate = e.date;
+        const head = document.createElement("div");
+        head.className = "date-head";
+        head.textContent = e.date;
+        list.appendChild(head);
+      }
+      const cat = CATS.find(c=>c.id === e.category) || CATS[CATS.length-1];
+      const row = document.createElement("div");
+      row.className = "entry-row";
+      row.innerHTML = `
+        <span class="cat-dot" style="background:${cat.color}"></span>
+        <div class="einfo">
+          <div class="ecat">${catName(cat)}</div>
+          ${e.note ? `<div class="enote">${escapeHtml(e.note)}</div>` : ""}
+        </div>
+        <div class="eamt">${fmt(e.amount)}</div>
+        <button class="edel" title="${t('delete')}" data-id="${e.id}">✕</button>`;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll(".edel").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const id = Number(btn.getAttribute("data-id"));
+        entries = entries.filter(e=> e.id !== id);
+        saveEntries(entries);
+        renderAll();
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function renderAll(){
+    applyTranslations();
+    populateCategorySelect();
+    renderBudgetGrid();
+    renderSummary();
+    renderRings();
+    renderDonut();
+    renderEntries();
+  }
+
+  // Form submit
+  document.getElementById("entryForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    const amount = Number(document.getElementById("fAmount").value);
+    const date = document.getElementById("fDate").value || todayStr();
+    const category = document.getElementById("fCategory").value;
+    const note = document.getElementById("fNote").value.trim();
+    if(!amount || amount <= 0) return;
+
+    entries.push({ id: Date.now(), amount, date, category, note });
+    saveEntries(entries);
+
+    document.getElementById("fAmount").value = "";
+    document.getElementById("fNote").value = "";
+    document.getElementById("fDate").value = todayStr();
+
+    renderAll();
+  });
+
+  document.getElementById("fDate").value = todayStr();
+
+  // Settings toggle
+  document.getElementById("settingsToggle").addEventListener("click", ()=>{
+    const grid = document.getElementById("budgetGrid");
+    const caret = document.getElementById("settingsCaret");
+    const open = grid.style.display !== "none";
+    grid.style.display = open ? "none" : "flex";
+    caret.textContent = open ? "▾" : "▴";
+  });
+
+  // Language toggle
+  document.getElementById("langBtn").addEventListener("click", ()=>{
+    lang = lang === "en" ? "om" : "en";
+    localStorage.setItem(LANG_KEY, lang);
+    renderAll();
+  });
+
+  // Theme toggle
+  function applyTheme(){
+    document.body.setAttribute("data-theme", theme);
+    document.getElementById("themeBtn").textContent = theme === "light" ? "☾" : "☀";
+  }
+  document.getElementById("themeBtn").addEventListener("click", ()=>{
+    theme = theme === "light" ? "dark" : "light";
+    localStorage.setItem(THEME_KEY, theme);
+    applyTheme();
+  });
+
+  // CSV export
+  document.getElementById("exportBtn").addEventListener("click", ()=>{
+    if(!entries.length) return;
+    const rows = [["Date","Category","Amount(ETB)","Note"]];
+    [...entries].sort((a,b)=> a.date.localeCompare(b.date)).forEach(e=>{
+      const cat = CATS.find(c=>c.id===e.category);
+      rows.push([e.date, cat ? cat.en : e.category, e.amount, (e.note||"").replace(/,/g,";")]);
+    });
+    const csv = rows.map(r=> r.join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qusannoo-export-${todayStr()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  applyTheme();
+  renderAll();
+})();
+</script>
+</body>
+</html>

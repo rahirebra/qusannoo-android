@@ -1,0 +1,21 @@
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+*.properties
+android-app/app/build/
+android-app/build/
+android-app/local.properties
+android-app/.gradle/
+android-app/*.iml
+android-app/*.log
+app/build/
+build/
+.gradle/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
