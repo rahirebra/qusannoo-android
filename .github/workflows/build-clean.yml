@@ -25,15 +25,14 @@ jobs:
     - name: Build Debug APK
       run: |
         cd android-app
-        # Remove corrupted wrapper
-        rm -f gradlew
-        rm -f gradle/wrapper/gradle-wrapper.jar
-        # Build with system gradle
-        gradle assembleDebug --stacktrace
+        chmod +x gradlew
+        ./gradlew assembleDebug --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Qusannoo-App
+        path: android-app/app/build/outputs/apk/debug/*.apk
+        retention-days: 30        name: Qusannoo-App
         path: android-app/app/build/outputs/apk/debug/*.apk
         retention-days: 30
